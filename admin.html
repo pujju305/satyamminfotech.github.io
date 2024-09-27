@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Password Verification and Data Entry</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container mt-5">
+        <h2>Password Verification</h2>
+        <!-- Password Verification Section -->
+        <form id="passwordForm">
+            <div class="form-group">
+                <label for="password">Enter Password</label>
+                <input type="password" id="password" class="form-control" placeholder="Enter password" required>
+            </div>
+            <button type="button" id="verifyPasswordBtn" class="btn btn-primary">Verify Password</button>
+        </form>
+
+        <div id="passwordResponseMessage" class="mt-4"></div>
+
+        <!-- Data Entry Form (hidden initially) -->
+        <div id="dataEntrySection" style="display:none;" class="mt-5">
+            <h2>Enter Certificate Data</h2>
+            <form id="dataEntryForm">
+                <div class="form-group">
+                    <label for="certificateNumber">Certificate Number</label>
+                    <input type="text" id="certificateNumber" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="name">Name</label>
+                    <input type="text" id="name" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="domain">Domain</label>
+                    <input type="text" id="domain" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="startDate">Start Date</label>
+                    <input type="date" id="startDate" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="endDate">End Date</label>
+                    <input type="date" id="endDate" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="status">Status</label>
+                    <select id="status" class="form-control" required>
+                        <option value="Completed">Completed</option>
+                        <option value="In Progress">In Progress</option>
+                        <option value="Pending">Pending</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary">Submit</button>
+            </form>
+            <div id="responseMessage" class="mt-4"></div>
+        </div>
+    </div>
+
+    <script type="module">
+        // Import Firebase libraries
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js';
+        import { getFirestore, setDoc, doc } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js';
+
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCS6Ey5SWhcY3VoFVOWeE16dhG5JtzGVdE",
+            authDomain: "mpdms-7436e.firebaseapp.com",
+            projectId: "mpdms-7436e",
+            storageBucket: "mpdms-7436e.appspot.com",
+            messagingSenderId: "782655379341",
+            appId: "1:782655379341:web:e55a0d62149eaed31c8fc4",
+            measurementId: "G-BKQM8C9RN8"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Verify password button event
+        document.getElementById('verifyPasswordBtn').addEventListener('click', function() {
+            const password = document.getElementById('password').value;
+
+            // Check if the password matches
+            if (password === 'satyamm@2902') {
+                document.getElementById('passwordForm').style.display = 'none';
+                document.getElementById('dataEntrySection').style.display = 'block';
+            } else {
+                document.getElementById('passwordResponseMessage').innerHTML = `
+                    <div class="alert alert-danger">Incorrect password. Please try again.</div>
+                `;
+            }
+        });
+
+        // Handle data entry form submission
+        document.getElementById('dataEntryForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+
+            const certificateNumber = document.getElementById('certificateNumber').value;
+            const name = document.getElementById('name').value;
+            const domain = document.getElementById('domain').value;
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+            const status = document.getElementById('status').value;
+
+            try {
+                // Add data to Firestore
+                await setDoc(doc(db, "certificates", certificateNumber), {
+                    name: name,
+                    domain: domain,
+                    startDate: startDate,
+                    endDate: endDate,
+                    mobileNumber: '9601290714',
+                    status: status
+                });
+
+                document.getElementById('responseMessage').innerHTML = `
+                    <div class="alert alert-success">Data submitted successfully!</div>
+                `;
+
+                // Clear the form
+                document.getElementById('dataEntryForm').reset();
+            } catch (error) {
+                console.error("Error adding document: ", error);
+                document.getElementById('responseMessage').innerHTML = `
+                    <div class="alert alert-danger">Error submitting data.</div>
+                `;
+            }
+        });
+    </script>
+</body>
+</html>

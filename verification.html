@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <title>Satyamm Infotech</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="css/font-awesome.min.css" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" />
+    <link href="css/style.css" rel="stylesheet" />
+    <link href="css/responsive.css" rel="stylesheet" />
+
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f8f9fa;
+        }
+
+        .verification_section {
+            max-width: 600px;
+            margin: 50px auto;
+            background: #fff;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            border-radius: 10px;
+        }
+
+        .verification_section h2 {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            text-align: center;
+            color: #333;
+        }
+
+        .verification_section label {
+            font-weight: 500;
+            margin-top: 10px;
+        }
+
+        .verification_section input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0 20px;
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+        }
+
+        .verification_section button {
+            width: 100%;
+            background-color: #007bff;
+            color: #fff;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        .verification_section button:hover {
+            background-color: #0056b3;
+        }
+
+        #result {
+            margin-top: 20px;
+            background: #e9ecef;
+            padding: 15px;
+            border-radius: 5px;
+            font-size: 14px;
+            color: #495057;
+        }
+
+        .footer_container {
+            background: #343a40;
+            color: white;
+        }
+
+        .footer_section {
+            padding: 20px 0;
+        }
+
+        .footer_section p {
+            margin: 0;
+            color: white;
+        }
+
+        .info_social a {
+            color: white;
+            margin-right: 10px;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .verification_section {
+                margin: 20px auto;
+                padding: 15px;
+            }
+        }
+    </style>
+
+    <!-- Firebase Initialization -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js';
+        import { getFirestore, doc, getDoc, query, where, collection, getDocs } from 'https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCS6Ey5SWhcY3VoFVOWeE16dhG5JtzGVdE",
+            authDomain: "mpdms-7436e.firebaseapp.com",
+            projectId: "mpdms-7436e",
+            storageBucket: "mpdms-7436e.appspot.com",
+            messagingSenderId: "782655379341",
+            appId: "1:782655379341:web:e55a0d62149eaed31c8fc4",
+            measurementId: "G-BKQM8C9RN8"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const form = document.getElementById('verificationForm');
+
+            form.addEventListener('submit', async function(event) {
+                event.preventDefault();
+                
+                const certificateNumber = document.getElementById('certificateNumber').value;
+                const mobileNumber = document.getElementById('mobileNumber').value;
+
+                if (!certificateNumber && !mobileNumber) {
+                    alert("Please enter either a certificate number or a mobile number.");
+                    return;
+                }
+                
+                try {
+                    let docSnap;
+
+                    if (certificateNumber) {
+                        const docRef = doc(db, "certificates", certificateNumber);
+                        docSnap = await getDoc(docRef);
+                    } else if (mobileNumber) {
+                        const q = query(collection(db, "certificates"), where("mobileNumber", "==", mobileNumber));
+                        const querySnapshot = await getDocs(q);
+                        if (!querySnapshot.empty) {
+                            docSnap = querySnapshot.docs[0];
+                        }
+                    }
+
+                    if (docSnap && docSnap.exists()) {
+                        const data = docSnap.data();
+
+                        document.getElementById('result').innerHTML = `
+                            <h3>Verification Result:</h3>
+                            <p><strong>Name:</strong> ${data.name}</p>
+                            <p><strong>Domain:</strong> ${data.domain}</p>
+                            <p><strong>Start Date:</strong> ${data.startDate}</p>
+                            <p><strong>End Date:</strong> ${data.endDate}</p>
+                            <p><strong>Mobile Number:</strong> ${data.mobileNumber}</p>
+                            <p><strong>Status:</strong> ${data.status}</p>
+                            <p><strong>Certificate Number:</strong> ${certificateNumber || 'N/A'}</p>
+                        `;
+                    } else {
+                        alert('No certificate found for the given number or mobile.');
+                    }
+                } catch (error) {
+                    console.error("Error fetching document: ", error);
+                }
+            });
+        });
+    </script>
+</head>
+<body>
+    <div class="verification_section">
+        <h2>Certificate Verification</h2>
+        <form id="verificationForm">
+            <label for="certificateNumber">Enter Certificate Number (optional):</label>
+            <input type="text" id="certificateNumber" placeholder="Enter Certificate Number" />
+
+            <label for="mobileNumber">Enter Mobile Number (optional):</label>
+            <input type="text" id="mobileNumber" placeholder="Enter Mobile Number" />
+
+            <p class="text-muted text-center">You can enter either a certificate number or a mobile number.</p>
+
+            <button type="submit">Fetch Data</button>
+        </form>
+        <div id="result"></div>
+    </div>
+
+    <!-- Start Footer Section -->
+    <div class="footer_container">
+        <footer class="footer_section text-center">
+            <div class="container">
+                <p>&copy; <span id="displayYear"></span> All Rights Reserved By Satyamm Infotech</p>
+            </div>
+        </footer>
+    </div>
+    <!-- End Footer Section -->
+
+    <!-- jQuery, Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.getElementById("displayYear").innerHTML = new Date().getFullYear();
+    </script>
+</body>
+</html>
